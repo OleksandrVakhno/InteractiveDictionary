@@ -1,43 +1,64 @@
 import json
 from difflib import get_close_matches
+from tkinter import *
+from tkinter import messagebox
 
-def printList(list):
-    if (len(list) > 1):
-        for i in list:
-            print(i)
-    else:
-        print(list[0])
+def clearGrid():
+    for label in window.grid_slaves():
+        if int(label.grid_info()["row"]) > 0:
+            label.grid_forget()
 
-def translate(word):
-    word = word.lower()
+def createLabel(text):
+    clearGrid()
+    l2 =Label(window, text= "Your definition is: ")
+    l2.grid(row=1, column = 0)
+    l3 = Label(window, text=text, fg="green")
+    l3.grid(row=1, column=1)
+
+def notFound(text):
+    clearGrid()
+    l4 = Label(window, text = text, fg="red")
+    l4.grid(row=1, column=1)
+
+
+
+def translate(value):
+    word = value.lower()
     if word in data:
-        printList(data[word])
+        createLabel("\n".join(data[word]))
     elif word.title() in data:
         word=word.title()
-        printList(data[word])
+        createLabel("\n".join(data[word]))
     elif word.upper() in data:  # in case user enters words like USA or NATO
          word = word.upper()
-         printList(data[word])
+         createLabel("\n".join(data[word]))
     else:
         close = get_close_matches(word, data, n=1)
         if(close!=[]):
-            q = input("Did you mean %s ? Please enter Y or N. " %close[0])
-            if(q.lower()=='y'):
+            q = messagebox.askquestion ('No word found',"Did you mean %s ?  " %close[0],icon = 'warning')
+            if(q=='yes'):
                 translate(close[0])
-            elif (q.lower()=='n'):
-                print("Couldn't find the word. Please double check")
             else:
-                print("Couldn't understand your response")
+                notFound("Couldn't find the word. Please double check")
         else:
-            print ("The word is not in dictionary")
+            notFound ("The word is not in dictionary")
 
 
 
 
+if __name__== "__main__":
+    data = json.load(open("data.json"))
 
+    window = Tk()
 
-data = json.load(open("data.json"))
+    l1 = Label(text="Please enter a word: ")
+    l1.grid(row=0, column=0)
 
-user_input = input("Please enter a word: ")
+    e1_value = StringVar()
+    e1 = Entry(window, textvariable=e1_value)
+    e1.grid(row=0, column=1)
 
-translate(user_input)
+    b1 = Button(text='Submit', command=lambda: translate(e1_value.get()))
+    b1.grid(row=0, column=2)
+
+    window.mainloop()
